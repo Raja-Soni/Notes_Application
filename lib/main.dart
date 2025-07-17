@@ -73,7 +73,7 @@ class HomePageState extends State<HomePage> {
             animatedTexts: [
               TypewriterAnimatedText(
                 "Notes",
-                speed: Duration(milliseconds: 500),
+                speed: Duration(milliseconds: 300),
                 textStyle: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -244,14 +244,19 @@ class HomePageState extends State<HomePage> {
                                                       .toString();
                                                   Navigator.push(
                                                     context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          AddOrUpdateNote(
-                                                            editNote: true,
-                                                            indexPos: idx,
-                                                            oldNote:
-                                                                oldNoteString,
-                                                          ),
+                                                    PageTransition(
+                                                      child: AddOrUpdateNote(
+                                                        editNote: true,
+                                                        indexPos: idx,
+                                                        oldNote: oldNoteString,
+                                                      ),
+                                                      type: PageTransitionType
+                                                          .rightToLeftWithFade,
+                                                      duration: Duration(
+                                                        milliseconds: 500,
+                                                      ),
+                                                      curve:
+                                                          Curves.fastOutSlowIn,
                                                     ),
                                                   );
                                                 },
