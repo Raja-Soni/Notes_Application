@@ -48,6 +48,20 @@ class HomePageState extends State<HomePage> {
     context.read<DataBaseProvider>().providerInitializeAllNote();
   }
 
+  double swipeProgress = 0.0;
+  DismissDirection swipeDirection = DismissDirection.none;
+  Color? swipeDeleteColorAnimation() {
+    if (swipeDirection == DismissDirection.startToEnd ||
+        swipeDirection == DismissDirection.endToStart) {
+      return Color.lerp(
+        Colors.red.shade200,
+        Colors.red.shade600,
+        swipeProgress,
+      );
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     ScaffoldMessengerState displayMessage = ScaffoldMessenger.of(context);
@@ -68,7 +82,7 @@ class HomePageState extends State<HomePage> {
             ],
             isRepeatingAnimation: false,
           ),
-          backgroundColor: Colors.grey.shade800,
+          backgroundColor: Colors.grey.shade900,
           centerTitle: true,
         ),
         body: Consumer<DataBaseProvider>(
@@ -79,10 +93,11 @@ class HomePageState extends State<HomePage> {
                 ? CustomContainer(
                     height: double.infinity,
                     width: double.infinity,
-                    backgroundColor: Colors.grey.shade900,
+                    backgroundColor: Colors.grey.shade800,
                     child: Center(
                       child: CustomText(
-                        text: 'NOTHING TO SHOW...',
+                        alignment: TextAlign.center,
+                        text: 'Nothing to show\n Press "+" button to add notes',
                         textSize: 25,
                       ),
                     ),
@@ -90,7 +105,7 @@ class HomePageState extends State<HomePage> {
                 : CustomContainer(
                     height: double.infinity,
                     width: double.infinity,
-                    backgroundColor: Colors.grey.shade900,
+                    backgroundColor: Colors.grey.shade800,
                     child: Column(
                       children: [
                         Expanded(
@@ -104,134 +119,194 @@ class HomePageState extends State<HomePage> {
                                   crossAxisSpacing: 10.0,
                                 ),
                             itemBuilder: (BuildContext context, int index) {
-                              return CustomContainer(
-                                borderRadius: 8.0,
-                                backgroundColor: Colors.grey.shade700,
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      top: 0,
-                                      left: 5,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 11.0,
-                                          left: 10.0,
-                                        ),
-                                        child: SizedBox(
-                                          height: 175,
-                                          width: 172,
-                                          child: SingleChildScrollView(
-                                            child: CustomText(
-                                              text:
-                                                  ctxWatch
-                                                      .getTempNoteList()[index][DbConnection
-                                                      .COLUMN_NAME_NOTE],
-                                              textColor: Colors.white,
+                              final keyItem =
+                                  ctxRead.getTempNoteList()[index][DbConnection
+                                      .COLUMN_NAME_NOTE];
+                              return Dismissible(
+                                key: Key(keyItem),
+                                background: CustomContainer(
+                                  backgroundColor:
+                                      swipeDirection ==
+                                          DismissDirection.startToEnd
+                                      ? swipeDeleteColorAnimation()
+                                      : null,
+                                  borderRadius: 10.0,
+                                  child: Icon(Icons.delete, size: 80),
+                                ),
+                                secondaryBackground: CustomContainer(
+                                  backgroundColor:
+                                      swipeDirection ==
+                                          DismissDirection.endToStart
+                                      ? swipeDeleteColorAnimation()
+                                      : null,
+                                  borderRadius: 10.0,
+                                  child: Icon(Icons.delete, size: 80),
+                                ),
+                                onUpdate: (details) {
+                                  swipeProgress = details.progress;
+                                  swipeDirection = details.direction;
+                                  setState(() {});
+                                },
+                                onDismissed: (direction) async {
+                                  int idx =
+                                      ctxRead
+                                          .getTempNoteList()[index][DbConnection
+                                          .COLUMN_NAME_ID];
+                                  int val = await ctxRead.providerDeleteNote(
+                                    idx,
+                                  );
+                                  displayMessage.showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.info,
+                                            color: Colors.blue,
+                                            size: 35,
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            val > 0
+                                                ? "Note Deleted"
+                                                : "Failed to delete note",
+                                            style: TextStyle(fontSize: 18),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: CustomContainer(
+                                  borderRadius: 8.0,
+                                  backgroundColor: Colors.grey.shade700,
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        top: 0,
+                                        left: 5,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 11.0,
+                                            left: 10.0,
+                                          ),
+                                          child: SizedBox(
+                                            height: 175,
+                                            width: 172,
+                                            child: SingleChildScrollView(
+                                              child: CustomText(
+                                                text:
+                                                    ctxWatch
+                                                        .getTempNoteList()[index][DbConnection
+                                                        .COLUMN_NAME_NOTE],
+                                                textColor: Colors.white,
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Positioned(
-                                      right: 1.5,
-                                      bottom: 1.2,
-                                      child: CustomContainer(
-                                        backgroundColor: Colors.grey.shade800,
-                                        borderRadius: 10,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            IconButton(
-                                              padding: Platform.isWindows
-                                                  ? EdgeInsets.only(
-                                                      left: 5.0,
-                                                      right: 5.0,
-                                                    )
-                                                  : EdgeInsets.zero,
-                                              onPressed: () {
-                                                int idx =
-                                                    ctxRead
-                                                        .getTempNoteList()[index][DbConnection
-                                                        .COLUMN_NAME_ID];
-                                                String oldNoteString = ctxRead
-                                                    .getTempNoteList()[index][DbConnection
-                                                        .COLUMN_NAME_NOTE]
-                                                    .toString();
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        AddOrUpdateNote(
-                                                          editNote: true,
-                                                          indexPos: idx,
-                                                          oldNote:
-                                                              oldNoteString,
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                              color: Colors.yellow,
-                                              splashColor: Colors.yellow,
-                                              icon: Icon(Icons.edit),
-                                            ),
-                                            Padding(
-                                              padding: Platform.isWindows
-                                                  ? EdgeInsets.only(
-                                                      left: 5.0,
-                                                      right: 5.0,
-                                                    )
-                                                  : EdgeInsets.zero,
-                                              child: CustomContainer(
-                                                height: 35,
-                                                width: 1.0,
-                                                backgroundColor:
-                                                    Colors.grey.shade900,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              onPressed: () async {
-                                                int idx =
-                                                    ctxRead
-                                                        .getTempNoteList()[index][DbConnection
-                                                        .COLUMN_NAME_ID];
-                                                int val = await ctxRead
-                                                    .providerDeleteNote(idx);
-                                                displayMessage.showSnackBar(
-                                                  SnackBar(
-                                                    content: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.info,
-                                                          color: Colors.blue,
-                                                          size: 35,
-                                                        ),
-                                                        SizedBox(width: 10),
-                                                        Text(
-                                                          val > 0
-                                                              ? "Note Deleted"
-                                                              : "Failed to delete note",
-                                                          style: TextStyle(
-                                                            fontSize: 18,
+                                      Positioned(
+                                        right: 1.5,
+                                        bottom: 1.2,
+                                        child: CustomContainer(
+                                          backgroundColor: Colors.grey.shade800,
+                                          borderRadius: 10,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              IconButton(
+                                                padding: Platform.isWindows
+                                                    ? EdgeInsets.only(
+                                                        left: 5.0,
+                                                        right: 5.0,
+                                                      )
+                                                    : EdgeInsets.zero,
+                                                onPressed: () {
+                                                  int idx =
+                                                      ctxRead
+                                                          .getTempNoteList()[index][DbConnection
+                                                          .COLUMN_NAME_ID];
+                                                  String oldNoteString = ctxRead
+                                                      .getTempNoteList()[index][DbConnection
+                                                          .COLUMN_NAME_NOTE]
+                                                      .toString();
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          AddOrUpdateNote(
+                                                            editNote: true,
+                                                            indexPos: idx,
+                                                            oldNote:
+                                                                oldNoteString,
                                                           ),
-                                                        ),
-                                                      ],
                                                     ),
-                                                  ),
-                                                );
-                                              },
-                                              color: Colors.red,
-                                              splashColor: Colors.red,
-                                              icon: Icon(Icons.delete),
-                                            ),
-                                          ],
+                                                  );
+                                                },
+                                                color: Colors.yellow,
+                                                splashColor: Colors.yellow,
+                                                icon: Icon(Icons.edit),
+                                              ),
+                                              Padding(
+                                                padding: Platform.isWindows
+                                                    ? EdgeInsets.only(
+                                                        left: 5.0,
+                                                        right: 5.0,
+                                                      )
+                                                    : EdgeInsets.zero,
+                                                child: CustomContainer(
+                                                  height: 35,
+                                                  width: 1.0,
+                                                  backgroundColor:
+                                                      Colors.grey.shade900,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed: () async {
+                                                  int idx =
+                                                      ctxRead
+                                                          .getTempNoteList()[index][DbConnection
+                                                          .COLUMN_NAME_ID];
+                                                  int val = await ctxRead
+                                                      .providerDeleteNote(idx);
+                                                  displayMessage.showSnackBar(
+                                                    SnackBar(
+                                                      content: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.info,
+                                                            color: Colors.blue,
+                                                            size: 35,
+                                                          ),
+                                                          SizedBox(width: 10),
+                                                          Text(
+                                                            val > 0
+                                                                ? "Note Deleted"
+                                                                : "Failed to delete note",
+                                                            style: TextStyle(
+                                                              fontSize: 18,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                color: Colors.red,
+                                                splashColor: Colors.red,
+                                                icon: Icon(Icons.delete),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
                             },
