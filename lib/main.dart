@@ -7,6 +7,7 @@ import 'package:notes_app/custom_widgets/custom_container.dart';
 import 'package:notes_app/custom_widgets/custom_text.dart';
 import 'package:notes_app/data/local/db_connection.dart';
 import 'package:notes_app/dbprovider.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -81,6 +82,7 @@ class HomePageState extends State<HomePage> {
               ),
             ],
             isRepeatingAnimation: false,
+            displayFullTextOnTap: true,
           ),
           backgroundColor: Colors.grey.shade900,
           centerTitle: true,
@@ -131,7 +133,11 @@ class HomePageState extends State<HomePage> {
                                       ? swipeDeleteColorAnimation()
                                       : null,
                                   borderRadius: 10.0,
-                                  child: Icon(Icons.delete, size: 80),
+                                  child: Icon(
+                                    Icons.delete,
+                                    size: 80,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 secondaryBackground: CustomContainer(
                                   backgroundColor:
@@ -140,7 +146,11 @@ class HomePageState extends State<HomePage> {
                                       ? swipeDeleteColorAnimation()
                                       : null,
                                   borderRadius: 10.0,
-                                  child: Icon(Icons.delete, size: 80),
+                                  child: Icon(
+                                    Icons.delete,
+                                    size: 80,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 onUpdate: (details) {
                                   swipeProgress = details.progress;
@@ -155,28 +165,28 @@ class HomePageState extends State<HomePage> {
                                   int val = await ctxRead.providerDeleteNote(
                                     idx,
                                   );
-                                  displayMessage.showSnackBar(
-                                    SnackBar(
-                                      content: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.info,
-                                            color: Colors.blue,
-                                            size: 35,
-                                          ),
-                                          SizedBox(width: 10),
-                                          Text(
-                                            val > 0
-                                                ? "Note Deleted"
-                                                : "Failed to delete note",
-                                            style: TextStyle(fontSize: 18),
-                                          ),
-                                        ],
+                                  if (val <= 0) {
+                                    displayMessage.showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            Icon(
+                                              Icons.error,
+                                              color: Colors.red,
+                                              size: 35,
+                                            ),
+                                            SizedBox(width: 10),
+                                            Text(
+                                              "Failed to delete note",
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 },
                                 child: CustomContainer(
                                   borderRadius: 8.0,
@@ -271,31 +281,31 @@ class HomePageState extends State<HomePage> {
                                                           .COLUMN_NAME_ID];
                                                   int val = await ctxRead
                                                       .providerDeleteNote(idx);
-                                                  displayMessage.showSnackBar(
-                                                    SnackBar(
-                                                      content: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Icon(
-                                                            Icons.info,
-                                                            color: Colors.blue,
-                                                            size: 35,
-                                                          ),
-                                                          SizedBox(width: 10),
-                                                          Text(
-                                                            val > 0
-                                                                ? "Note Deleted"
-                                                                : "Failed to delete note",
-                                                            style: TextStyle(
-                                                              fontSize: 18,
+                                                  if (val <= 0) {
+                                                    displayMessage.showSnackBar(
+                                                      SnackBar(
+                                                        content: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Icon(
+                                                              Icons.error,
+                                                              color: Colors.red,
+                                                              size: 35,
                                                             ),
-                                                          ),
-                                                        ],
+                                                            SizedBox(width: 10),
+                                                            Text(
+                                                              "Failed to delete note",
+                                                              style: TextStyle(
+                                                                fontSize: 18,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
+                                                    );
+                                                  }
                                                 },
                                                 color: Colors.red,
                                                 splashColor: Colors.red,
@@ -322,15 +332,21 @@ class HomePageState extends State<HomePage> {
           heroTag: "fab_NavigateToAddNotePage",
           tooltip: "Add Note",
           splashColor: Colors.green,
-          elevation: 10,
           mini: true,
           backgroundColor: Colors.yellow.shade800,
           shape: CircleBorder(),
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AddOrUpdateNote()),
+              PageTransition(
+                child: AddOrUpdateNote(),
+                type: PageTransitionType.scale,
+                alignment: Alignment.bottomCenter,
+                duration: Duration(milliseconds: 400),
+                curve: Curves.fastOutSlowIn,
+              ),
             );
+            context.read<DataBaseProvider>().getTempNoteList();
           },
           child: Icon(Icons.add, size: 35, color: Colors.white),
         ),
