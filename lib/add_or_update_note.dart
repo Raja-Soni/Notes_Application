@@ -81,7 +81,7 @@ class AddOrUpdateNote extends StatelessWidget {
                                         Icon(
                                           Icons.warning,
                                           color: Colors.yellow,
-                                          size: 35,
+                                          size: 30,
                                         ),
                                         CustomText(
                                           text: "Text field is empty...",
