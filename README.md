@@ -2,8 +2,6 @@
 
 https://github.com/user-attachments/assets/96bf8ad4-3d57-4a3c-8ad8-49efbdfdd19c
 
-A new Flutter project.
-
 1) **First problem Solution after downloading the zip file:**
     Download ZipFile from Code button on the Master webpage. Extract the downloded zip file where ever you want to. Now, Open Android Studio and click on open project or open and select the folder that you have extracted.
     
